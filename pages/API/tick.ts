@@ -13,15 +13,16 @@ export default async function handler(
   try {
     if (!tradingSession || !tradingSession.running) {
       return res.status(200).json({ 
-        status: "Stopped", 
+        botStatus: "Stopped",  // Changed from 'status' to 'botStatus'
         message: "Trading bot is not running" 
       });
     }
 
     const result = await runTradingTick(tradingSession);
     
+    // FIXED: Remove duplicate status property
     res.status(200).json({
-      status: "Running",
+      botStatus: "Running",  // Changed from 'status' to 'botStatus'
       session: {
         running: tradingSession.running,
         tradeCount: tradingSession.tradeCount,
@@ -54,12 +55,12 @@ async function runTradingTick(session: any) {
     const uiPrice = outAmount / 1e6;
 
     return {
-      status: "success",
+      tradeStatus: "success",  // Changed from 'status' to 'tradeStatus'
       input: "0.01 SOL",
       output: `${uiPrice.toFixed(4)} USDC`,
       route: data?.routes?.[0],
     };
   } catch (err: any) {
-    return { status: "error", message: err.message };
+    return { tradeStatus: "error", message: err.message };  // Fixed here too
   }
 }
