@@ -1,14 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-// In-memory session (same as in start.ts)
 let tradingSession: any = null;
 
 export default async function handler(
   req: NextApiRequest, 
   res: NextApiResponse
 ) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
@@ -25,7 +24,7 @@ export default async function handler(
       } : null
     });
   } catch (error: any) {
-    console.error('Stop error:', error);
+    console.error("Stop error:", error);
     res.status(500).json({ 
       status: "Error", 
       error: error.message 
