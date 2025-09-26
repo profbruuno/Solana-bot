@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function Home() {
   const [key, setKey] = useState("");
@@ -8,34 +8,13 @@ export default function Home() {
   const [output, setOutput] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Check bot status on component mount
-    checkStatus();
-  }, []);
-
-  async function checkStatus() {
-    try {
-      const res = await fetch("/api/tick");
-      const data = await res.json();
-      if (data.status === "Running") {
-        setStatus("Running");
-      }
-    } catch (error) {
-      console.error("Error checking status:", error);
-    }
-  }
-
   async function startBot() {
     setIsLoading(true);
     try {
       const res = await fetch("/api/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          key, 
-          capital: parseFloat(capital), 
-          address 
-        }),
+        body: JSON.stringify({ key, capital, address }),
       });
       const data = await res.json();
       setStatus(data.status);
@@ -50,10 +29,7 @@ export default function Home() {
   async function stopBot() {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/stop", { 
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await fetch("/api/stop", { method: "POST" });
       const data = await res.json();
       setStatus(data.status);
       setOutput(data);
@@ -78,14 +54,11 @@ export default function Home() {
   }
 
   return (
-    <main style={{ padding: 20, maxWidth: 800, margin: '0 auto' }}>
+    <main style={{ padding: 20, maxWidth: 800, margin: "0 auto" }}>
       <h1>Solana Trading Bot</h1>
-      <p style={{ color: '#666', marginBottom: 20 }}>
-        Automated trading bot for Solana tokens using Jupiter Aggregator
-      </p>
-
+      
       <div style={{ marginBottom: 15 }}>
-        <label style={{ display: 'block', marginBottom: 5, fontWeight: 'bold' }}>
+        <label style={{ display: "block", marginBottom: 5, fontWeight: "bold" }}>
           Private key / Seed phrase
         </label>
         <textarea 
@@ -93,9 +66,9 @@ export default function Home() {
           onChange={(e) => setKey(e.target.value)}
           placeholder="Enter your private key or seed phrase"
           style={{ 
-            width: '100%', 
+            width: "100%", 
             padding: 10, 
-            border: '1px solid #ddd', 
+            border: "1px solid #ddd", 
             borderRadius: 4,
             minHeight: 80 
           }}
@@ -103,7 +76,7 @@ export default function Home() {
       </div>
 
       <div style={{ marginBottom: 15 }}>
-        <label style={{ display: 'block', marginBottom: 5, fontWeight: 'bold' }}>
+        <label style={{ display: "block", marginBottom: 5, fontWeight: "bold" }}>
           Capital (USDC)
         </label>
         <input
@@ -111,16 +84,16 @@ export default function Home() {
           value={capital}
           onChange={(e) => setCapital(e.target.value)}
           style={{ 
-            width: '100%', 
+            width: "100%", 
             padding: 10, 
-            border: '1px solid #ddd', 
+            border: "1px solid #ddd", 
             borderRadius: 4 
           }}
         />
       </div>
 
       <div style={{ marginBottom: 20 }}>
-        <label style={{ display: 'block', marginBottom: 5, fontWeight: 'bold' }}>
+        <label style={{ display: "block", marginBottom: 5, fontWeight: "bold" }}>
           Token Contract Address
         </label>
         <input
@@ -128,9 +101,9 @@ export default function Home() {
           onChange={(e) => setAddress(e.target.value)}
           placeholder="Enter token contract address"
           style={{ 
-            width: '100%', 
+            width: "100%", 
             padding: 10, 
-            border: '1px solid #ddd', 
+            border: "1px solid #ddd", 
             borderRadius: 4 
           }}
         />
@@ -141,28 +114,28 @@ export default function Home() {
           onClick={startBot} 
           disabled={isLoading}
           style={{ 
-            padding: '10px 20px', 
+            padding: "10px 20px", 
             marginRight: 10, 
-            backgroundColor: '#0070f3',
-            color: 'white',
-            border: 'none',
+            backgroundColor: "#0070f3",
+            color: "white",
+            border: "none",
             borderRadius: 4,
-            cursor: isLoading ? 'not-allowed' : 'pointer'
+            cursor: isLoading ? "not-allowed" : "pointer"
           }}
         >
-          {isLoading ? 'Starting...' : 'Start Bot'}
+          {isLoading ? "Starting..." : "Start Bot"}
         </button>
         <button 
           onClick={tickBot} 
           disabled={isLoading}
           style={{ 
-            padding: '10px 20px', 
+            padding: "10px 20px", 
             marginRight: 10,
-            backgroundColor: '#666',
-            color: 'white',
-            border: 'none',
+            backgroundColor: "#666",
+            color: "white",
+            border: "none",
             borderRadius: 4,
-            cursor: isLoading ? 'not-allowed' : 'pointer'
+            cursor: isLoading ? "not-allowed" : "pointer"
           }}
         >
           Get Quote
@@ -171,12 +144,12 @@ export default function Home() {
           onClick={stopBot} 
           disabled={isLoading}
           style={{ 
-            padding: '10px 20px',
-            backgroundColor: '#ff4444',
-            color: 'white',
-            border: 'none',
+            padding: "10px 20px",
+            backgroundColor: "#ff4444",
+            color: "white",
+            border: "none",
             borderRadius: 4,
-            cursor: isLoading ? 'not-allowed' : 'pointer'
+            cursor: isLoading ? "not-allowed" : "pointer"
           }}
         >
           Stop Bot
@@ -185,8 +158,8 @@ export default function Home() {
 
       <div style={{ 
         padding: 15, 
-        backgroundColor: status === 'Running' ? '#e8f5e8' : '#fff3cd',
-        border: `1px solid ${status === 'Running' ? '#4caf50' : '#ffc107'}`,
+        backgroundColor: status === "Running" ? "#e8f5e8" : "#fff3cd",
+        border: `1px solid ${status === "Running" ? "#4caf50" : "#ffc107"}`,
         borderRadius: 4,
         marginBottom: 20
       }}>
@@ -196,12 +169,12 @@ export default function Home() {
       {output && (
         <div style={{ 
           padding: 15, 
-          backgroundColor: '#f5f5f5', 
-          border: '1px solid #ddd',
+          backgroundColor: "#f5f5f5", 
+          border: "1px solid #ddd",
           borderRadius: 4
         }}>
           <h3>Latest Output:</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+          <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
             {JSON.stringify(output, null, 2)}
           </pre>
         </div>
