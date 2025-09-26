@@ -17,7 +17,8 @@ export default function Home() {
         body: JSON.stringify({ key, capital, address }),
       });
       const data = await res.json();
-      setStatus(data.botStatus || data.status); // Updated to handle new property name
+      // FIXED: Use botStatus instead of status
+      setStatus(data.botStatus || data.status);
       setOutput(data);
     } catch (error) {
       setOutput({ status: "error", message: "Failed to start bot" });
@@ -31,7 +32,8 @@ export default function Home() {
     try {
       const res = await fetch("/api/stop", { method: "POST" });
       const data = await res.json();
-      setStatus(data.botStatus || data.status); // Updated to handle new property name
+      // FIXED: Use botStatus instead of status
+      setStatus(data.botStatus || data.status);
       setOutput(data);
     } catch (error) {
       setOutput({ status: "error", message: "Failed to stop bot" });
@@ -45,7 +47,8 @@ export default function Home() {
     try {
       const res = await fetch("/api/tick");
       const data = await res.json();
-      setStatus(data.botStatus || data.status); // Updated to handle new property name
+      // FIXED: Use botStatus instead of status
+      setStatus(data.botStatus || data.status);
       setOutput(data);
     } catch (error) {
       setOutput({ status: "error", message: "Failed to get tick data" });
