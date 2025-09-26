@@ -14,14 +14,25 @@ export default function Home() {
       const res = await fetch("/api/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key, capital, address }),
+        body: JSON.stringify({ 
+          key: key.trim(), 
+          capital: capital.trim(), 
+          address: address.trim() 
+        }),
       });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
-      // FIXED: Use botStatus instead of status
-      setStatus(data.botStatus || data.status);
+      setStatus(data.botStatus || "Running");
       setOutput(data);
-    } catch (error) {
-      setOutput({ status: "error", message: "Failed to start bot" });
+    } catch (error: any) {
+      setOutput({ 
+        status: "error", 
+        message: error.message || "Failed to start bot" 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -30,13 +41,23 @@ export default function Home() {
   async function stopBot() {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/stop", { method: "POST" });
+      const res = await fetch("/api/stop", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
-      // FIXED: Use botStatus instead of status
-      setStatus(data.botStatus || data.status);
+      setStatus(data.botStatus || "Stopped");
       setOutput(data);
-    } catch (error) {
-      setOutput({ status: "error", message: "Failed to stop bot" });
+    } catch (error: any) {
+      setOutput({ 
+        status: "error", 
+        message: error.message || "Failed to stop bot" 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -46,12 +67,19 @@ export default function Home() {
     setIsLoading(true);
     try {
       const res = await fetch("/api/tick");
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
-      // FIXED: Use botStatus instead of status
-      setStatus(data.botStatus || data.status);
+      setStatus(data.botStatus || status);
       setOutput(data);
-    } catch (error) {
-      setOutput({ status: "error", message: "Failed to get tick data" });
+    } catch (error: any) {
+      setOutput({ 
+        status: "error", 
+        message: error.message || "Failed to get tick data" 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +88,10 @@ export default function Home() {
   return (
     <main style={{ padding: 20, maxWidth: 800, margin: "0 auto" }}>
       <h1>Solana Trading Bot</h1>
-      
+      <p style={{ color: '#666', marginBottom: 20 }}>
+        Enter your details below to start trading
+      </p>
+
       <div style={{ marginBottom: 15 }}>
         <label style={{ display: "block", marginBottom: 5, fontWeight: "bold" }}>
           Private key / Seed phrase
@@ -74,7 +105,8 @@ export default function Home() {
             padding: 10, 
             border: "1px solid #ddd", 
             borderRadius: 4,
-            minHeight: 80 
+            minHeight: 80,
+            fontFamily: 'monospace'
           }}
         />
       </div>
@@ -108,7 +140,8 @@ export default function Home() {
             width: "100%", 
             padding: 10, 
             border: "1px solid #ddd", 
-            borderRadius: 4 
+            borderRadius: 4,
+            fontFamily: 'monospace'
           }}
         />
       </div>
@@ -118,13 +151,14 @@ export default function Home() {
           onClick={startBot} 
           disabled={isLoading}
           style={{ 
-            padding: "10px 20px", 
+            padding: "12px 24px", 
             marginRight: 10, 
             backgroundColor: "#0070f3",
             color: "white",
             border: "none",
-            borderRadius: 4,
-            cursor: isLoading ? "not-allowed" : "pointer"
+            borderRadius: 6,
+            cursor: isLoading ? "not-allowed" : "pointer",
+            fontSize: "16px"
           }}
         >
           {isLoading ? "Starting..." : "Start Bot"}
@@ -133,13 +167,14 @@ export default function Home() {
           onClick={tickBot} 
           disabled={isLoading}
           style={{ 
-            padding: "10px 20px", 
+            padding: "12px 24px", 
             marginRight: 10,
             backgroundColor: "#666",
             color: "white",
             border: "none",
-            borderRadius: 4,
-            cursor: isLoading ? "not-allowed" : "pointer"
+            borderRadius: 6,
+            cursor: isLoading ? "not-allowed" : "pointer",
+            fontSize: "16px"
           }}
         >
           Get Quote
@@ -148,12 +183,13 @@ export default function Home() {
           onClick={stopBot} 
           disabled={isLoading}
           style={{ 
-            padding: "10px 20px",
+            padding: "12px 24px",
             backgroundColor: "#ff4444",
             color: "white",
             border: "none",
-            borderRadius: 4,
-            cursor: isLoading ? "not-allowed" : "pointer"
+            borderRadius: 6,
+            cursor: isLoading ? "not-allowed" : "pointer",
+            fontSize: "16px"
           }}
         >
           Stop Bot
@@ -164,10 +200,12 @@ export default function Home() {
         padding: 15, 
         backgroundColor: status === "Running" ? "#e8f5e8" : "#fff3cd",
         border: `1px solid ${status === "Running" ? "#4caf50" : "#ffc107"}`,
-        borderRadius: 4,
+        borderRadius: 6,
         marginBottom: 20
       }}>
-        <h2>Status: {status}</h2>
+        <h2 style={{ margin: 0, color: status === "Running" ? "#2e7d32" : "#856404" }}>
+          Status: {status}
+        </h2>
       </div>
 
       {output && (
@@ -175,14 +213,33 @@ export default function Home() {
           padding: 15, 
           backgroundColor: "#f5f5f5", 
           border: "1px solid #ddd",
-          borderRadius: 4
+          borderRadius: 6
         }}>
-          <h3>Latest Output:</h3>
-          <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+          <h3 style={{ marginBottom: 10 }}>Latest Output:</h3>
+          <pre style={{ 
+            whiteSpace: "pre-wrap", 
+            wordBreak: "break-word",
+            fontSize: "14px",
+            backgroundColor: "white",
+            padding: "10px",
+            borderRadius: "4px",
+            border: "1px solid #eee"
+          }}>
             {JSON.stringify(output, null, 2)}
           </pre>
         </div>
       )}
+
+      <div style={{ 
+        marginTop: 20, 
+        padding: 15, 
+        backgroundColor: "#fff3cd",
+        border: "1px solid #ffc107",
+        borderRadius: 6,
+        fontSize: "14px"
+      }}>
+        <strong>Note:</strong> This is a demo trading bot. It shows real price quotes but does not execute actual trades.
+      </div>
     </main>
   );
-}
+    }
