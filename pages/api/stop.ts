@@ -11,24 +11,27 @@ export default async function handler(
   }
 
   try {
+    const wasRunning = tradingSession?.running || false;
+    
     if (tradingSession) {
       tradingSession.running = false;
     }
 
-    // FIXED: Changed 'status' to 'botStatus' for consistency
     res.status(200).json({ 
-      botStatus: "Stopped",  // ← CHANGED FROM 'status' TO 'botStatus'
+      botStatus: "Stopped",
       message: "Trading bot has been stopped",
+      wasRunning: wasRunning,
       finalStats: tradingSession ? {
-        totalTrades: tradingSession.tradeCount,
-        totalProfit: tradingSession.totalProfit
+        capital: tradingSession.capital,
+        address: tradingSession.contractAddress
       } : null
     });
+
   } catch (error: any) {
     console.error("Stop error:", error);
-    res.status(500).json({ 
-      status: "Error", 
-      error: error.message 
+    res.status(200).json({ 
+      botStatus: "Error",
+      message: error.message || "Failed to stop bot"
     });
   }
 }
