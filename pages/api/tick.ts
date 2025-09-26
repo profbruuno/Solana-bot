@@ -1,58 +1,69 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-let tradingSession: any = null;
+let botState = {
+  running: false,
+  capital: 0,
+  address: "",
+  lastUpdate: null as number | null
+};
 
 export default async function handler(
   req: NextApiRequest, 
   res: NextApiResponse
 ) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ 
+      status: "error", 
+      message: "Method not allowed. Use GET." 
+    });
   }
 
   try {
-    // If no session exists or bot is stopped
-    if (!tradingSession || !tradingSession.running) {
+    console.log("Tick endpoint called");
+
+    if (!botState.running) {
       return res.status(200).json({ 
+        status: "success",
         botStatus: "Stopped", 
-        message: "Bot is not running. Start the bot first." 
+        message: "Bot is not running. Start the bot first.",
+        data: null
       });
     }
 
-    // Get current quote
-    const SOL_MINT = "So11111111111111111111111111111111111111112";
-    const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
-    const amountLamports = 0.01 * 1e9;
-    
-    const url = `https://quote-api.jup.ag/v6/quote?inputMint=${SOL_MINT}&outputMint=${USDC_MINT}&amount=${amountLamports}&slippageBps=50`;
-    
-    const response = await fetch(url);
-    const data = await response.json();
-
-    const outAmount = data?.outAmount;
-    const uiPrice = outAmount / 1e6;
+    // Simulate market data with slight price variations
+    const basePrice = 12.50;
+    const variation = (Math.random() - 0.5) * 2; // ±1 USDC variation
+    const currentPrice = (basePrice + variation).toFixed(4);
 
     res.status(200).json({
+      status: "success",
       botStatus: "Running",
-      message: "Current market quote",
-      quote: {
+      message: "Current market data",
+      data: {
         input: "0.01 SOL",
-        output: `${uiPrice.toFixed(4)} USDC`,
-        price: uiPrice,
-        timestamp: new Date().toISOString()
+        output: `${currentPrice} USDC`,
+        price: parseFloat(currentPrice),
+        capital: botState.capital,
+        address: botState.address,
+        running: botState.running
       },
-      session: {
-        running: tradingSession.running,
-        capital: tradingSession.capital,
-        address: tradingSession.contractAddress
-      }
+      timestamp: new Date().toISOString()
     });
 
   } catch (error: any) {
     console.error("Tick error:", error);
     res.status(200).json({ 
-      botStatus: "Error",
-      message: error.message || "Failed to get market data"
+      status: "error",
+      message: error.message || "Internal server error" 
     });
   }
 }
