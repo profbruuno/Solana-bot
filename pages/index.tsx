@@ -208,25 +208,4 @@ export default function Home() {
       )}
     </main>
   );
-          }      <textarea value={key} onChange={(e) => setKey(e.target.value)} />
-      <label>Capital (USDC)</label>
-      <input
-        type="number"
-        value={capital}
-        onChange={(e) => setCapital(e.target.value)}
-      />
-      <label>Contract address</label>
-      <input
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-      />
-      <div style={{ marginTop: 10 }}>
-        <button onClick={startBot}>Start</button>
-        <button onClick={tickBot}>Tick</button>
-        <button onClick={stopBot}>Stop</button>
-      </div>
-      <h2>Status: {status}</h2>
-      <pre>{output && JSON.stringify(output, null, 2)}</pre>
-    </main>
-  );
 }
