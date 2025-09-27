@@ -8,17 +8,12 @@ export default function Home() {
   const [output, setOutput] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Client-side trading simulation
+  // Client-side trading simulation - NO API CALLS
   const simulateTrading = async (action: 'start' | 'tick' | 'stop') => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    const SOL_MINT = "So11111111111111111111111111111111111111112";
-    const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
-    
-    // Generate realistic price data
     const basePrice = 12.50;
-    const variation = (Math.random() - 0.5) * 4; // ±2 USDC variation
+    const variation = (Math.random() - 0.5) * 4;
     const currentPrice = (basePrice + variation).toFixed(4);
     
     switch (action) {
@@ -26,7 +21,7 @@ export default function Home() {
         return {
           status: "success",
           botStatus: "Running", 
-          message: "Trading bot started successfully",
+          message: "Trading bot started successfully!",
           data: {
             input: "0.01 SOL",
             output: `${currentPrice} USDC`,
@@ -37,20 +32,28 @@ export default function Home() {
         };
       
       case 'tick':
-        return {
-          status: "success",
-          botStatus: status === "Running" ? "Running" : "Stopped",
-          message: status === "Running" ? "Current market data" : "Bot is stopped",
-          data: status === "Running" ? {
-            input: "0.01 SOL",
-            output: `${currentPrice} USDC`,
-            price: parseFloat(currentPrice),
-            capital: Number(capital),
-            address: address,
-            running: status === "Running",
-            timestamp: new Date().toISOString()
-          } : null
-        };
+        if (status === "Running") {
+          return {
+            status: "success",
+            botStatus: "Running",
+            message: "Current market data",
+            data: {
+              input: "0.01 SOL",
+              output: `${currentPrice} USDC`,
+              price: parseFloat(currentPrice),
+              capital: Number(capital),
+              address: address,
+              timestamp: new Date().toISOString()
+            }
+          };
+        } else {
+          return {
+            status: "success",
+            botStatus: "Stopped",
+            message: "Bot is stopped. Start the bot first.",
+            data: null
+          };
+        }
       
       case 'stop':
         return {
@@ -78,27 +81,18 @@ export default function Home() {
     setOutput(null);
     
     try {
-      // Validate inputs
       if (!key.trim() || !capital.trim() || !address.trim()) {
         throw new Error("Please fill in all fields");
       }
 
-      if (key.trim().length < 10) {
-        throw new Error("Please enter a valid private key or seed phrase");
-      }
-
-      if (address.trim().length < 10) {
-        throw new Error("Please enter a valid contract address");
-      }
-
       const data = await simulateTrading('start');
-      setStatus(data.botStatus || "Running");
+      setStatus(data.botStatus);
       setOutput(data);
       
     } catch (error: any) {
       setOutput({ 
         status: "error", 
-        message: error.message || "Failed to start bot"
+        message: error.message
       });
     } finally {
       setIsLoading(false);
@@ -110,13 +104,13 @@ export default function Home() {
     
     try {
       const data = await simulateTrading('stop');
-      setStatus(data.botStatus || "Stopped");
+      setStatus(data.botStatus);
       setOutput(data);
       
     } catch (error: any) {
       setOutput({ 
         status: "error", 
-        message: error.message || "Failed to stop bot"
+        message: error.message
       });
     } finally {
       setIsLoading(false);
@@ -128,46 +122,17 @@ export default function Home() {
     
     try {
       const data = await simulateTrading('tick');
-      setStatus(data.botStatus || status);
       setOutput(data);
       
     } catch (error: any) {
       setOutput({ 
         status: "error", 
-        message: error.message || "Failed to get market data"
+        message: error.message
       });
     } finally {
       setIsLoading(false);
     }
   }
-
-  // Real Jupiter API call (optional - can be enabled later)
-  const getRealQuote = async () => {
-    try {
-      const SOL_MINT = "So11111111111111111111111111111111111111112";
-      const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
-      const amountLamports = 0.01 * 1e9;
-      
-      const url = `https://quote-api.jup.ag/v6/quote?inputMint=${SOL_MINT}&outputMint=${USDC_MINT}&amount=${amountLamports}&slippageBps=50`;
-      
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch quote');
-      
-      const data = await response.json();
-      const outAmount = data?.outAmount;
-      const uiPrice = outAmount / 1e6;
-      
-      return {
-        status: "success",
-        input: "0.01 SOL",
-        output: `${uiPrice.toFixed(4)} USDC`,
-        realData: true
-      };
-    } catch (error) {
-      // Fallback to simulated data
-      return simulateTrading('tick');
-    }
-  };
 
   return (
     <main style={{ 
@@ -175,75 +140,53 @@ export default function Home() {
       maxWidth: 800, 
       margin: "0 auto", 
       fontFamily: 'Arial, sans-serif',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       minHeight: '100vh'
     }}>
       <div style={{ 
         background: 'white', 
         padding: 30, 
         borderRadius: 15, 
-        boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+        boxShadow: '0 5px 15px rgba(0,0,0,0.1)',
         marginTop: 20
       }}>
         <h1 style={{ 
           color: '#333', 
           textAlign: 'center', 
-          marginBottom: 10,
-          fontSize: '2.5rem',
-          background: 'linear-gradient(45deg, #667eea, #764ba2)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
+          marginBottom: 10
         }}>
-          🔥 Solana Trading Bot
+          Solana Trading Bot
         </h1>
         
         <p style={{ 
           color: '#666', 
           textAlign: 'center', 
-          marginBottom: 30,
-          fontSize: '1.1rem'
+          marginBottom: 30
         }}>
-          Advanced automated trading for Solana tokens
+          Client-Side Demo - No Server Required
         </p>
 
-        <div style={{ marginBottom: 25 }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: 8, 
-            fontWeight: "bold",
-            color: '#333',
-            fontSize: '1.1rem'
-          }}>
-            🔑 Private key / Seed phrase
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: "block", marginBottom: 8, fontWeight: "bold" }}>
+            Private Key / Seed Phrase
           </label>
           <textarea 
             value={key} 
             onChange={(e) => setKey(e.target.value)}
-            placeholder="Enter your private key or seed phrase (demo only)"
+            placeholder="Enter any text (demo only)"
             style={{ 
               width: "100%", 
-              padding: 15, 
-              border: "2px solid #e1e5e9", 
-              borderRadius: 10,
-              minHeight: 100,
-              fontFamily: 'monospace',
-              fontSize: 14,
-              transition: 'border-color 0.3s'
+              padding: 12, 
+              border: "1px solid #ddd", 
+              borderRadius: 5,
+              minHeight: 80,
+              fontSize: 14
             }}
-            onFocus={(e) => e.target.style.borderColor = '#667eea'}
-            onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
           />
         </div>
 
-        <div style={{ marginBottom: 25 }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: 8, 
-            fontWeight: "bold",
-            color: '#333',
-            fontSize: '1.1rem'
-          }}>
-            💰 Capital (USDC)
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: "block", marginBottom: 8, fontWeight: "bold" }}>
+            Capital (USDC)
           </label>
           <input
             type="number"
@@ -251,175 +194,118 @@ export default function Home() {
             onChange={(e) => setCapital(e.target.value)}
             style={{ 
               width: "100%", 
-              padding: 15, 
-              border: "2px solid #e1e5e9", 
-              borderRadius: 10,
-              fontSize: 16,
-              transition: 'border-color 0.3s'
+              padding: 12, 
+              border: "1px solid #ddd", 
+              borderRadius: 5,
+              fontSize: 16
             }}
-            onFocus={(e) => e.target.style.borderColor = '#667eea'}
-            onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
           />
         </div>
 
-        <div style={{ marginBottom: 30 }}>
-          <label style={{ 
-            display: "block", 
-            marginBottom: 8, 
-            fontWeight: "bold",
-            color: '#333',
-            fontSize: '1.1rem'
-          }}>
-            📍 Token Contract Address
+        <div style={{ marginBottom: 25 }}>
+          <label style={{ display: "block", marginBottom: 8, fontWeight: "bold" }}>
+            Token Contract Address
           </label>
           <input
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="Enter token contract address"
+            placeholder="Enter any contract address"
             style={{ 
               width: "100%", 
-              padding: 15, 
-              border: "2px solid #e1e5e9", 
-              borderRadius: 10,
-              fontFamily: 'monospace',
-              fontSize: 14,
-              transition: 'border-color 0.3s'
+              padding: 12, 
+              border: "1px solid #ddd", 
+              borderRadius: 5,
+              fontSize: 14
             }}
-            onFocus={(e) => e.target.style.borderColor = '#667eea'}
-            onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
           />
         </div>
 
-        <div style={{ 
-          marginBottom: 30, 
-          display: 'flex', 
-          gap: 15, 
-          flexWrap: 'wrap',
-          justifyContent: 'center'
-        }}>
+        <div style={{ marginBottom: 25, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button 
             onClick={startBot} 
             disabled={isLoading}
             style={{ 
-              padding: "15px 30px", 
-              backgroundColor: status === "Running" ? "#28a745" : "#0070f3",
+              padding: "12px 20px", 
+              backgroundColor: "#0070f3",
               color: "white",
               border: "none",
-              borderRadius: 10,
-              cursor: isLoading ? "not-allowed" : "pointer",
+              borderRadius: 5,
+              cursor: "pointer",
               fontSize: 16,
-              fontWeight: 'bold',
               flex: 1,
-              minWidth: 140,
-              transition: 'all 0.3s',
-              opacity: isLoading ? 0.7 : 1
+              minWidth: 120
             }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
           >
-            {isLoading ? "⏳ Processing..." : status === "Running" ? "🔄 Restart Bot" : "🚀 Start Bot"}
+            {isLoading ? "Loading..." : "Start Bot"}
           </button>
-          
           <button 
             onClick={tickBot} 
             disabled={isLoading}
             style={{ 
-              padding: "15px 30px", 
-              backgroundColor: "#6c757d",
+              padding: "12px 20px", 
+              backgroundColor: "#666",
               color: "white",
               border: "none",
-              borderRadius: 10,
-              cursor: isLoading ? "not-allowed" : "pointer",
+              borderRadius: 5,
+              cursor: "pointer",
               fontSize: 16,
-              fontWeight: 'bold',
               flex: 1,
-              minWidth: 140,
-              transition: 'all 0.3s',
-              opacity: isLoading ? 0.7 : 1
+              minWidth: 120
             }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
           >
-            {isLoading ? "⏳ Loading..." : "📊 Get Quote"}
+            {isLoading ? "Loading..." : "Get Quote"}
           </button>
-          
           <button 
             onClick={stopBot} 
-            disabled={isLoading || status === "Stopped"}
+            disabled={isLoading}
             style={{ 
-              padding: "15px 30px",
-              backgroundColor: status === "Stopped" ? "#6c757d" : "#dc3545",
+              padding: "12px 20px",
+              backgroundColor: "#ff4444",
               color: "white",
               border: "none",
-              borderRadius: 10,
-              cursor: (isLoading || status === "Stopped") ? "not-allowed" : "pointer",
+              borderRadius: 5,
+              cursor: "pointer",
               fontSize: 16,
-              fontWeight: 'bold',
               flex: 1,
-              minWidth: 140,
-              transition: 'all 0.3s',
-              opacity: (isLoading || status === "Stopped") ? 0.7 : 1
+              minWidth: 120
             }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
           >
-            {isLoading ? "⏳ Stopping..." : "🛑 Stop Bot"}
+            {isLoading ? "Loading..." : "Stop Bot"}
           </button>
         </div>
 
         <div style={{ 
-          padding: 20, 
-          backgroundColor: status === "Running" ? 
-            "linear-gradient(135deg, #d4edda, #c3e6cb)" : 
-            "linear-gradient(135deg, #fff3cd, #ffeaa7)",
-          border: `3px solid ${status === "Running" ? "#28a745" : "#ffc107"}`,
-          borderRadius: 12,
-          marginBottom: 25,
-          textAlign: 'center'
+          padding: 15, 
+          backgroundColor: status === "Running" ? "#e8f5e8" : "#fff3cd",
+          border: `1px solid ${status === "Running" ? "#4caf50" : "#ffc107"}`,
+          borderRadius: 5,
+          marginBottom: 20
         }}>
-          <h2 style={{ 
-            margin: 0, 
-            color: status === "Running" ? "#155724" : "#856404",
-            fontSize: '1.5rem'
-          }}>
-            {status === "Running" ? "✅ Bot Active" : "⏸️ Bot Stopped"}
+          <h2 style={{ margin: 0, color: status === "Running" ? "#2e7d32" : "#856404" }}>
+            Status: {status}
           </h2>
-          <p style={{ 
-            margin: '10px 0 0 0', 
-            color: status === "Running" ? "#155724" : "#856404",
-            fontSize: '1.1rem'
-          }}>
-            Status: <strong>{status}</strong>
-          </p>
         </div>
 
         {output && (
           <div style={{ 
-            padding: 20, 
-            backgroundColor: output.status === "error" ? 
-              "linear-gradient(135deg, #f8d7da, #f5c6cb)" : 
-              "linear-gradient(135deg, #d1ecf1, #bee5eb)",
-            border: `3px solid ${output.status === "error" ? "#dc3545" : "#17a2b8"}`,
-            borderRadius: 12
+            padding: 15, 
+            backgroundColor: output.status === "error" ? "#ffebee" : "#f5f5f5", 
+            border: `1px solid ${output.status === "error" ? "#f44336" : "#ddd"}`,
+            borderRadius: 5
           }}>
-            <h3 style={{ 
-              marginBottom: 15, 
-              color: output.status === "error" ? "#721c24" : "#0c5460",
-              fontSize: '1.3rem'
-            }}>
-              {output.status === "error" ? "❌ Error" : "📈 Trading Data"}
+            <h3 style={{ marginBottom: 10, color: output.status === "error" ? "#d32f2f" : "#333" }}>
+              {output.status === "error" ? "Error" : "Output"}
             </h3>
             <pre style={{ 
               whiteSpace: "pre-wrap", 
               wordBreak: "break-word",
               fontSize: 14,
-              backgroundColor: "rgba(255,255,255,0.9)",
-              padding: 15,
-              borderRadius: 8,
-              border: "1px solid rgba(0,0,0,0.1)",
+              backgroundColor: "white",
+              padding: 12,
+              borderRadius: 4,
+              border: "1px solid #eee",
               maxHeight: 300,
-              overflow: 'auto',
-              fontFamily: 'monospace'
+              overflow: 'auto'
             }}>
               {JSON.stringify(output, null, 2)}
             </pre>
@@ -427,20 +313,17 @@ export default function Home() {
         )}
 
         <div style={{ 
-          marginTop: 25, 
-          padding: 20, 
-          backgroundColor: "linear-gradient(135deg, #d4edda, #c3e6cb)",
-          border: "3px solid #28a745",
-          borderRadius: 12,
-          textAlign: 'center'
+          marginTop: 20, 
+          padding: 15, 
+          backgroundColor: "#e8f5e8",
+          border: "1px solid #4caf50",
+          borderRadius: 5
         }}>
-          <h4 style={{ margin: '0 0 10px 0', color: '#155724' }}>💡 How It Works</h4>
-          <p style={{ margin: 0, color: '#155724', fontSize: '0.9rem' }}>
-            This is a <strong>client-side demo</strong> that simulates trading. 
-            No server API calls are made - everything runs in your browser for maximum reliability.
+          <p style={{ margin: 0, color: "#155724", fontSize: '14px' }}>
+            ✅ This is a client-side demo that works entirely in your browser.
           </p>
         </div>
       </div>
     </main>
   );
-            }
+                }
