@@ -594,4 +594,108 @@ export default function Home() {
             <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: '600' }}>Trading Statistics</h3>
             <div style={{ fontSize: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                <s
+                <span>Total Trades:</span>
+                <span>{tradingStats.totalTrades}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                <span>Win Rate:</span>
+                <span>{winRate}%</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Total PnL:</span>
+                <span style={{ 
+                  fontWeight: '600', 
+                  color: tradingStats.totalPnl >= 0 ? '#28a745' : '#dc3545' 
+                }}>
+                  ${tradingStats.totalPnl.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ padding: 15, backgroundColor: '#f8f9fa', borderRadius: 4, border: '1px solid #e9ecef' }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: '600' }}>Open Positions</h3>
+            {positions.length > 0 ? (
+              positions.map(position => (
+                <div key={position.token} style={{ fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                    <span>SOL Position:</span>
+                    <span>{position.amount.toFixed(4)} SOL</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                    <span>Avg Entry:</span>
+                    <span>${position.entryPrice.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Unrealized PnL:</span>
+                    <span style={{ 
+                      fontWeight: '600', 
+                      color: position.pnl >= 0 ? '#28a745' : '#dc3545' 
+                    }}>
+                      ${position.pnl.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{ fontSize: '14px', color: '#666' }}>No open positions</div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Trades */}
+        <div style={{ marginBottom: 20 }}>
+          <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: '600' }}>Recent Trades</h3>
+          <div style={{ 
+            backgroundColor: '#f8f9fa', 
+            borderRadius: 4, 
+            border: '1px solid #e9ecef',
+            maxHeight: 200,
+            overflowY: 'auto'
+          }}>
+            {trades.length > 0 ? (
+              trades.slice(0, 8).map(trade => (
+                <div key={trade.id} style={{ 
+                  padding: '8px 12px', 
+                  borderBottom: '1px solid #e9ecef',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '13px'
+                }}>
+                  <div>
+                    <span style={{ 
+                      fontWeight: '600', 
+                      color: trade.type === 'BUY' ? '#28a745' : '#dc3545',
+                      marginRight: 8
+                    }}>
+                      {trade.type}
+                    </span>
+                    <span style={{ color: '#666' }}>
+                      {trade.amount.toFixed(3)} SOL @ ${trade.price.toFixed(2)}
+                    </span>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ 
+                      fontWeight: '600', 
+                      color: trade.pnl >= 0 ? '#28a745' : '#dc3545'
+                    }}>
+                      {trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#999' }}>
+                      {new Date(trade.timestamp).toLocaleTimeString()}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: 20, textAlign: 'center', color: '#666', fontSize: '14px' }}>
+                No trades executed yet
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
