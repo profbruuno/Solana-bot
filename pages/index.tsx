@@ -71,6 +71,7 @@ export default function Home() {
       default:
         return {
           status: "error",
+          botStatus: "Stopped", // Added default botStatus
           message: "Unknown action"
         };
     }
@@ -86,7 +87,8 @@ export default function Home() {
       }
 
       const data = await simulateTrading('start');
-      setStatus(data.botStatus);
+      // FIX: Added default value for botStatus
+      setStatus(data.botStatus || "Running");
       setOutput(data);
       
     } catch (error: any) {
@@ -104,7 +106,8 @@ export default function Home() {
     
     try {
       const data = await simulateTrading('stop');
-      setStatus(data.botStatus);
+      // FIX: Added default value for botStatus
+      setStatus(data.botStatus || "Stopped");
       setOutput(data);
       
     } catch (error: any) {
@@ -122,6 +125,8 @@ export default function Home() {
     
     try {
       const data = await simulateTrading('tick');
+      // FIX: Added default value for botStatus
+      setStatus(data.botStatus || status);
       setOutput(data);
       
     } catch (error: any) {
@@ -326,4 +331,4 @@ export default function Home() {
       </div>
     </main>
   );
-                }
+            }
