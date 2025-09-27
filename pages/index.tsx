@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 
-// Simple interfaces to avoid complex types
 interface Trade {
   id: string;
   type: string;
@@ -19,7 +18,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState("");
   
-  // Simplified state management
   const [balances, setBalances] = useState({
     usdc: 1000,
     sol: 0,
@@ -41,7 +39,61 @@ export default function Home() {
 
   const tradingInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Safe price simulation - removed complex APIs
+  // Load data from localStorage on component mount
+  useEffect(() => {
+    const loadSavedData = () => {
+      try {
+        const savedUserId = localStorage.getItem('tradingBotUserId');
+        if (savedUserId) {
+          setUserId(savedUserId);
+          
+          const savedData = localStorage.getItem(`tradingData_${savedUserId}`);
+          if (savedData) {
+            const data = JSON.parse(savedData);
+            setBalances(data.balances || balances);
+            setTrades(data.trades || []);
+            setTradingStats(data.stats || tradingStats);
+            setStatus(data.status || "Stopped");
+          }
+        } else {
+          const newUserId = 'user_' + Date.now();
+          localStorage.setItem('tradingBotUserId', newUserId);
+          setUserId(newUserId);
+        }
+      } catch (error) {
+        console.log('Error loading saved data, starting fresh');
+        const newUserId = 'user_' + Date.now();
+        localStorage.setItem('tradingBotUserId', newUserId);
+        setUserId(newUserId);
+      }
+    };
+
+    loadSavedData();
+  }, []);
+
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    const saveData = () => {
+      try {
+        const dataToSave = {
+          balances,
+          trades,
+          stats: tradingStats,
+          status,
+          lastSaved: new Date().toISOString()
+        };
+        localStorage.setItem(`tradingData_${userId}`, JSON.stringify(dataToSave));
+      } catch (error) {
+        console.log('Error saving data');
+      }
+    };
+
+    if (userId) {
+      saveData();
+    }
+  }, [balances, trades, tradingStats, status, userId]);
+
+  // Safe price simulation
   const simulateRealisticPrice = () => {
     const basePrice = 152.50;
     const volatility = 0.018;
@@ -61,23 +113,6 @@ export default function Home() {
     const solValue = balances.sol * newPrice;
     const totalValue = balances.usdc + solValue;
     setBalances(prev => ({ ...prev, totalValue }));
-  };
-
-  // Safe user initialization
-  const initializeUser = () => {
-    try {
-      let userIdentifier = localStorage.getItem('tradingBotUserId');
-      if (!userIdentifier) {
-        userIdentifier = 'user_' + Date.now();
-        localStorage.setItem('tradingBotUserId', userIdentifier);
-      }
-      setUserId(userIdentifier);
-      return userIdentifier;
-    } catch (error) {
-      const localUserId = 'local_' + Date.now();
-      setUserId(localUserId);
-      return localUserId;
-    }
   };
 
   // Safe trade execution
@@ -124,7 +159,7 @@ export default function Home() {
       };
 
       setBalances(newBalances);
-      setTrades(prev => [newTrade, ...prev.slice(0, 19)]);
+      setTrades(prev => [newTrade, ...prev.slice(0, 49)]); // Keep last 50 trades
 
       setTradingStats(prev => ({
         totalTrades: prev.totalTrades + 1,
@@ -137,7 +172,7 @@ export default function Home() {
     }
   };
 
-  // Safe trading strategy
+  // Trading strategy
   const executeTradingStrategy = () => {
     if (status !== "Running") return;
 
@@ -146,7 +181,6 @@ export default function Home() {
     const availableUSDC = balances.usdc;
     const availableSOL = balances.sol;
 
-    // Simple trading logic
     if (priceChange < -1.5 && availableUSDC > 50) {
       const tradeAmount = (availableUSDC * parseFloat(riskPercent)) / 100;
       const solAmount = tradeAmount / currentPrice;
@@ -158,7 +192,6 @@ export default function Home() {
     }
   };
 
-  // Safe start trading
   const startTrading = () => {
     setIsLoading(true);
     
@@ -168,21 +201,6 @@ export default function Home() {
         setIsLoading(false);
         return;
       }
-
-      initializeUser();
-      
-      // Reset to initial state
-      setBalances({
-        usdc: parseFloat(capital) || 1000,
-        sol: 0,
-        totalValue: parseFloat(capital) || 1000
-      });
-      setTrades([]);
-      setTradingStats({
-        totalTrades: 0,
-        winningTrades: 0,
-        totalPnl: 0
-      });
 
       setStatus("Running");
 
@@ -199,7 +217,6 @@ export default function Home() {
     }
   };
 
-  // Safe stop trading
   const stopTrading = () => {
     if (tradingInterval.current) {
       clearInterval(tradingInterval.current);
@@ -208,7 +225,6 @@ export default function Home() {
     setStatus("Stopped");
   };
 
-  // Safe manual trade
   const manualTrade = (type: string) => {
     if (status !== "Running") {
       alert("Start trading first");
@@ -226,15 +242,12 @@ export default function Home() {
     }
   };
 
-  // Safe reset
   const resetAccount = () => {
     if (tradingInterval.current) {
       clearInterval(tradingInterval.current);
       tradingInterval.current = null;
     }
 
-    localStorage.removeItem('tradingBotUserId');
-    
     setBalances({
       usdc: parseFloat(capital) || 1000,
       sol: 0,
@@ -248,27 +261,41 @@ export default function Home() {
     });
     setStatus("Stopped");
     
-    initializeUser();
+    // Clear localStorage for this user
+    localStorage.removeItem(`tradingData_${userId}`);
   };
 
-  // Calculate win rate safely
+  const exportData = () => {
+    const dataToExport = {
+      balances,
+      trades,
+      stats: tradingStats,
+      marketData,
+      exportDate: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = `trading-data-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+  };
+
   const winRate = tradingStats.totalTrades > 0 
     ? ((tradingStats.winningTrades / tradingStats.totalTrades) * 100).toFixed(1)
     : '0.0';
 
-  // Safe useEffect
+  // Price update effect
   useEffect(() => {
-    initializeUser();
-    
-    // Price update interval
     const priceInterval = setInterval(simulateRealisticPrice, 20000);
     
-    // Cleanup
     return () => {
       if (priceInterval) clearInterval(priceInterval);
       if (tradingInterval.current) clearInterval(tradingInterval.current);
     };
-  }, []); // Empty dependency array for safety
+  }, []);
 
   return (
     <main style={{ 
@@ -295,22 +322,46 @@ export default function Home() {
           }}>
             Solana Trading Bot
           </h1>
-          <button 
-            onClick={resetAccount}
-            style={{ 
-              padding: "8px 16px",
-              backgroundColor: "#6c757d",
-              color: "white",
-              border: "none",
-              borderRadius: 4,
-              cursor: "pointer",
-              fontSize: '13px'
-            }}
-          >
-            Reset Account
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button 
+              onClick={exportData}
+              style={{ 
+                padding: "8px 16px",
+                backgroundColor: "#17a2b8",
+                color: "white",
+                border: "none",
+                borderRadius: 4,
+                cursor: "pointer",
+                fontSize: '13px'
+              }}
+            >
+              Export Data
+            </button>
+            <button 
+              onClick={resetAccount}
+              style={{ 
+                padding: "8px 16px",
+                backgroundColor: "#6c757d",
+                color: "white",
+                border: "none",
+                borderRadius: 4,
+                cursor: "pointer",
+                fontSize: '13px'
+              }}
+            >
+              Reset Account
+            </button>
+          </div>
         </div>
         
+        <p style={{ 
+          color: '#666', 
+          marginBottom: 30,
+          fontSize: '14px'
+        }}>
+          User ID: {userId} | Data automatically saved to browser storage
+        </p>
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 30 }}>
           {/* Left Column */}
           <div>
@@ -481,7 +532,7 @@ export default function Home() {
             color: status === "Running" ? "#155724" : "#856404",
             fontSize: '16px'
           }}>
-            Status: {status} | SOL Price: ${marketData.solPrice.toFixed(2)}
+            Status: {status} | SOL Price: ${marketData.solPrice.toFixed(2)} | Auto-save: ON
           </span>
         </div>
 
@@ -551,18 +602,18 @@ export default function Home() {
           </div>
 
           <div style={{ padding: 15, backgroundColor: '#e7f3ff', borderRadius: 4, border: '1px solid #b3d9ff' }}>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: '600', color: '#0066cc' }}>Trading Bot</h3>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: '600', color: '#0066cc' }}>Data Persistence</h3>
             <div style={{ fontSize: '13px', color: '#0066cc' }}>
-              <div style={{ marginBottom: 5 }}>✅ Client-Side Only</div>
-              <div style={{ marginBottom: 5 }}>✅ No External Dependencies</div>
-              <div>✅ Realistic Price Simulation</div>
+              <div style={{ marginBottom: 5 }}>✅ Auto-save to browser</div>
+              <div style={{ marginBottom: 5 }}>✅ Survives page refresh</div>
+              <div>✅ Export/Import capability</div>
             </div>
           </div>
         </div>
 
         {/* Recent Trades */}
         <div style={{ marginBottom: 20 }}>
-          <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: '600' }}>Recent Trades</h3>
+          <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: '600' }}>Trade History (Last 50)</h3>
           <div style={{ 
             backgroundColor: '#f8f9fa', 
             borderRadius: 4, 
